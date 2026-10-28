@@ -373,6 +373,10 @@
         "role": {
           "const": "tool",
           "description": "Present only for symmetry with the message it mints; the value is fixed, so a producer may leave it out."
+        },
+        "error": {
+          "type": "string",
+          "description": "Why the tool failed, when it did: the same value the minted tool message carries in its error. Present alongside content rather than instead of it, so content still tells the model what happened. A string, including the empty one, marks the call failed; a producer with no failure to report omits it."
         }
       },
       "required": ["type", "messageId", "toolCallId", "content"],

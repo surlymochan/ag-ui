@@ -4,6 +4,7 @@ description: "How an agent proposes a call, streams its arguments, and receives 
 ---
 
 import DraftNotice from "/snippets/draft-notice.mdx";
+import { Since } from "/snippets/since.mdx";
 
 <DraftNotice />
 
@@ -155,6 +156,45 @@ the next run's `messages` unchanged.
   before emitting it, and MUST warn when the flattening dropped a part. It
   MUST NOT put a placeholder in the dropped part's place: a downgrade
   reshapes, it does not invent.
+
+#### `error`
+
+<Since version="1.1" pr="PR_NUMBER" />
+
+A tool message has always been able to say that its tool failed, through
+[`ToolMessage.error`](/spec/draft/schema#toolmessage). The event that mints
+that message could not, so a consumer rendering the stream had no way to show
+a failed call as failed until a `MESSAGES_SNAPSHOT` restated the message —
+usually after the run, too late for anything the user watched happen.
+`error` on `TOOL_CALL_RESULT` is the same field, on the event. It is new in
+1.1.
+
+```json
+{
+  "type": "TOOL_CALL_RESULT",
+  "messageId": "msg-2",
+  "toolCallId": "call-1",
+  "content": "Error: weather service timed out after 10s",
+  "error": "weather service timed out after 10s"
+}
+```
+
+- A call failed when `error` is a string. The empty string counts: a producer
+  that sends one chose to send it. A consumer MUST test the value's type, not
+  its truthiness — reading `""` as success is the mistake this rule prevents.
+- A producer with no failure to report MUST omit `error`. It MUST NOT send
+  `null`, which the schema rejects.
+- `error` travels alongside `content`, never instead of it. `content` is still
+  what the model is told about the call, and a producer SHOULD make it describe
+  the failure, so that a peer that drops `error` loses the flag and not the
+  explanation ([Versioning](/spec/draft/basic/versioning)).
+- The tool message the event mints carries the same `error`. A consumer that
+  builds messages from the stream MUST set it there, so that the message it
+  built and the one a later `MESSAGES_SNAPSHOT` carries agree about whether the
+  call failed.
+- A 1.0 consumer strips `error` with a warning and the run continues. A
+  producer that knows its peer is older MAY omit it instead; that downgrade
+  is lossy, and MUST warn by the [versioning rules](/spec/draft/basic/versioning).
 
 ## Frontend tools
 

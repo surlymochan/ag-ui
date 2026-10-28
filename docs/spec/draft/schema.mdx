@@ -191,6 +191,7 @@ Carries what a tool returned. Mints a tool message rather than appending to an e
 - `toolCallId` — `string`, **required**. The call being answered.
 - `content` — `string` | array of [`ContentPart`](#contentpart), **required**. What the tool returned: either plain text, or an ordered list of parts, exactly as on the tool message this event mints. A tool returning structured data serialises it into text; media travel as parts of their own.
 - `role` — `"tool"`, optional. Present only for symmetry with the message it mints; the value is fixed, so a producer may leave it out.
+- `error` — `string`, optional. Why the tool failed, when it did: the same value the minted tool message carries in its error. Present alongside content rather than instead of it, so content still tells the model what happened. A string, including the empty one, marks the call failed; a producer with no failure to report omits it.
 
 Closed object: the schema rejects members not listed here.
 
